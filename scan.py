@@ -35,12 +35,15 @@ def main():
     train_dataset = get_train_dataset(p, train_transformations, 
                                         split='train', to_neighbors_dataset = True)
     val_dataset = get_val_dataset(p, val_transformations, to_neighbors_dataset = True)
+
+
     train_dataloader = get_train_dataloader(p, train_dataset)
     val_dataloader = get_val_dataloader(p, val_dataset)
     print('Train transforms:', train_transformations)
     print('Validation transforms:', val_transformations)
     print('Train samples %d - Val samples %d' %(len(train_dataset), len(val_dataset)))
-    
+
+
     # Model
     print(colored('Get model', 'blue'))
     model = get_model(p, p['pretext_model'])
@@ -130,9 +133,10 @@ def main():
     model_checkpoint = torch.load(p['scan_model'], map_location='cpu')
     model.module.load_state_dict(model_checkpoint['model'])
     predictions = get_predictions(p, val_dataloader, model)
+
     clustering_stats = hungarian_evaluate(model_checkpoint['head'], predictions, 
                             class_names=val_dataset.dataset.classes, 
-                            compute_confusion_matrix=True, 
+                            compute_confusion_matrix=False, ##TODO: CHANGE
                             confusion_matrix_file=os.path.join(p['scan_dir'], 'confusion_matrix.png'))
     print(clustering_stats)         
     

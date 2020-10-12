@@ -34,7 +34,6 @@ class AugmentedDataset(Dataset):
         
         sample['image'] = self.image_transform(image)
         sample['image_augmented'] = self.augmentation_transform(image)
-
         return sample
 
 
@@ -67,7 +66,6 @@ class NeighborsDataset(Dataset):
     def __getitem__(self, index):
         output = {}
         anchor = self.dataset.__getitem__(index)
-        
         neighbor_index = np.random.choice(self.indices[index], 1)[0]
         neighbor = self.dataset.__getitem__(neighbor_index)
 
@@ -78,5 +76,5 @@ class NeighborsDataset(Dataset):
         output['neighbor'] = neighbor['image'] 
         output['possible_neighbors'] = torch.from_numpy(self.indices[index])
         output['target'] = anchor['target']
-        
+
         return output

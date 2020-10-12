@@ -18,7 +18,7 @@ def simclr_train(train_loader, model, criterion, optimizer, epoch):
         prefix="Epoch: [{}]".format(epoch))
 
     model.train()
-
+    
     for i, batch in enumerate(train_loader):
         images = batch['image']
         images_augmented = batch['image_augmented']

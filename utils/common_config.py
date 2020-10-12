@@ -51,14 +51,28 @@ def get_model(p, pretrain_path=None):
         elif p['train_db_name'] == 'stl-10':
             from models.resnet_stl import resnet18
             backbone = resnet18()
+
+        elif p['train_db_name'] == 'cct20':
+            from models.resnet_cct20 import resnet18
+            backbone = resnet18()
+        elif p['train_db_name'] == 'bhp_kenya':
+            from models.resnet_cct20 import resnet18
+            backbone = resnet18()
         
         else:
+
             raise NotImplementedError
 
     elif p['backbone'] == 'resnet50':
         if 'imagenet' in p['train_db_name']:
             from models.resnet import resnet50
-            backbone = resnet50()  
+            backbone = resnet50()
+        elif p['train_db_name'] == 'cct20':
+            from models.resnet import resnet50
+            backbone = resnet50()
+        elif p['train_db_name'] == 'bhp_kenya':
+            from models.resnet import resnet50
+            backbone = resnet50()
 
         else:
             raise NotImplementedError 
@@ -141,9 +155,20 @@ def get_train_dataset(p, transform, to_augmented_dataset=False,
         subset_file = './data/imagenet_subsets/%s.txt' %(p['train_db_name'])
         dataset = ImageNetSubset(subset_file=subset_file, split='train', transform=transform)
 
+    elif p['train_db_name'] == 'cct20':
+        from data.cct import CCT20
+        dataset = CCT20(train=True,
+                        transform=transform)
+    elif p['train_db_name'] == 'bhp_kenya':
+        from data.bhp_kenya import BHPKenya
+        dataset = BHPKenya(train=True,
+                        transform=transform)
+
     else:
         raise ValueError('Invalid train dataset {}'.format(p['train_db_name']))
     
+
+
     # Wrap into other dataset (__getitem__ changes)
     if to_augmented_dataset: # Dataset returns an image and an augmentation of that image.
         from data.custom_dataset import AugmentedDataset
@@ -153,7 +178,7 @@ def get_train_dataset(p, transform, to_augmented_dataset=False,
         from data.custom_dataset import NeighborsDataset
         indices = np.load(p['topk_neighbors_train_path'])
         dataset = NeighborsDataset(dataset, indices, p['num_neighbors'])
-    
+
     return dataset
 
 
@@ -179,6 +204,15 @@ def get_val_dataset(p, transform=None, to_neighbors_dataset=False):
         from data.imagenet import ImageNetSubset
         subset_file = './data/imagenet_subsets/%s.txt' %(p['val_db_name'])
         dataset = ImageNetSubset(subset_file=subset_file, split='val', transform=transform)
+
+    elif p['val_db_name'] == 'cct20':
+        from data.cct import CCT20
+        dataset = CCT20(train=False,
+                        transform=transform)
+    elif p['val_db_name'] == 'bhp_kenya':
+        from data.bhp_kenya import BHPKenya
+        dataset = BHPKenya(train=True,
+                        transform=transform)
     
     else:
         raise ValueError('Invalid validation dataset {}'.format(p['val_db_name']))
@@ -231,14 +265,15 @@ def get_train_transformations(p):
         # Augmentation strategy from our paper 
         return transforms.Compose([
             transforms.RandomHorizontalFlip(),
+            transforms.CenterCrop(p['augmentation_kwargs']['crop_size']),
             transforms.RandomCrop(p['augmentation_kwargs']['crop_size']),
             Augment(p['augmentation_kwargs']['num_strong_augs']),
             transforms.ToTensor(),
-            transforms.Normalize(**p['augmentation_kwargs']['normalize']),
-            Cutout(
-                n_holes = p['augmentation_kwargs']['cutout_kwargs']['n_holes'],
-                length = p['augmentation_kwargs']['cutout_kwargs']['length'],
-                random = p['augmentation_kwargs']['cutout_kwargs']['random'])])
+            transforms.Normalize(**p['augmentation_kwargs']['normalize'])])
+            # Cutout(
+            #     n_holes = p['augmentation_kwargs']['cutout_kwargs']['n_holes'],
+            #     length = p['augmentation_kwargs']['cutout_kwargs']['length'],
+            #     random = p['augmentation_kwargs']['cutout_kwargs']['random'])])
     
     else:
         raise ValueError('Invalid augmentation strategy {}'.format(p['augmentation_strategy']))

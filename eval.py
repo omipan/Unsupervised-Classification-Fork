@@ -84,7 +84,7 @@ def main():
         head = state_dict['head'] if config['setup'] == 'scan' else 0
         predictions, features = get_predictions(config, dataloader, model, return_features=True)
         clustering_stats = hungarian_evaluate(head, predictions, dataset.classes, 
-                                                compute_confusion_matrix=True)
+                                                compute_confusion_matrix=False)
         print(clustering_stats)
         if args.visualize_prototypes:
             prototype_indices = get_prototypes(config, predictions[head], features, model)
@@ -138,8 +138,9 @@ def visualize_indices(indices, dataset, hungarian_match):
         plt.figure()
         plt.axis('off')
         plt.imshow(img)
+        plt.savefig('repository_eccv/stl-10/scan/prototype_images/{}.jpg'.format(idx))
         plt.show()
 
 
 if __name__ == "__main__":
-    main() 
+    main()
